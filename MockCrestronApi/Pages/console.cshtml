@@ -1,0 +1,61 @@
+﻿@page "/console"
+
+
+@model MockCrestronApi.Pages.console
+@{
+}
+
+<div style="margin-top:200px;width:100%;text-align:center">
+<label for="ipadd">IP:</label>
+<input type="text" id="ipadd" />
+<label for="username">User Name:</label>
+<input type="text" id="username" />
+<label for="password">Password:</label>
+<input type="password" id="password" />
+
+    <input type="button" title="Send" value="Send" onclick="doApi();" />
+<div id="thedisplay" style="margin-top:100px;"></div>
+</div>
+
+<script type="text/javascript">
+
+    async function doApi() {
+
+        
+        let logincall = `userlogin?name=${document.getElementById("username").value}&password=${document.getElementById("password").value}`;
+        let tracid = "";
+        debugger;
+        const res = await fetch(logincall, {
+            method: 'GET',
+            headers: {
+                'login': 'emptyheader',
+            },
+        });
+        if (res.ok) {
+            const resu = await res.json();
+            tracid = resu.trackid;
+        }
+        else {
+            const resu = await res.json();
+            document.getElementById("thedisplay").innerHTML = (`Error-> ${resu.error}`);
+            return;
+        }
+
+        let thecall = `CrestronNVX?ip=${document.getElementById("ipadd").value}&name=${document.getElementById("username").value}&password=${document.getElementById("password").value}`;
+        const response = await fetch(thecall, {
+            method: 'GET',
+            headers: {
+                'TRACKID': tracid         }
+        });
+        if (response.ok) {
+            if (200 <= response.status && response.status <= 299) {
+                const result = await response.json();
+                document.getElementById("thedisplay").innerHTML = "Horizontal Resolution: " + result.horizontalResolution
+                    + "<br>Vertical Resolution:" + result.verticalResolution + "<br>Is Sync Detected: " + result.isSyncDetected;
+            }
+        } else {
+            const res = await response.json();
+            document.getElementById("thedisplay").innerHTML = (`Error-> ${res.error}`);
+        }
+    }
+</script>
